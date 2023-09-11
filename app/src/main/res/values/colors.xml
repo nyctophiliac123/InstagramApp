@@ -4,5 +4,6 @@
     <color name="white">#FFFFFFFF</color>
     <color name="pink">#C13584</color>
     <color name="grey">#FF959393</color>
+    <color name="loginPagePink">#E46E97</color>
 
 </resources>
