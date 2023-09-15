@@ -1,9 +1,11 @@
 package com.example.instagramapp
 
-import androidx.appcompat.app.AppCompatActivity
+import android.content.Intent
 import android.os.Bundle
+import android.text.Html
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import com.example.instagramapp.Models.User
 import com.example.instagramapp.databinding.ActivitySignUpBinding
 import com.example.instagramapp.utils.USER_NODE
@@ -20,14 +22,13 @@ class signUpActivity : AppCompatActivity() {
     }
 
     lateinit var user: User
-    private val launcher = registerForActivityResult(ActivityResultContracts.GetContent()) {
-        uri->
+    private val launcher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let {
             uploadImage(uri, USER_PROFILE_FOLDER) {
-                if (it==null) {
+                if (it == null) {
 
                 } else {
-                    user.image=it
+                    user.image = it
                     binding.profileImage.setImageURI(uri)
                 }
             }
@@ -37,6 +38,8 @@ class signUpActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+        val text = "<font color=#FF959393>Already have an account?</font> <font color=#C13584>Login</font>"
+        binding.login.setText(Html.fromHtml(text))
         user = User()
 
         binding.signUpBtn.setOnClickListener {
@@ -64,11 +67,8 @@ class signUpActivity : AppCompatActivity() {
                         Firebase.firestore.collection(USER_NODE)
                             .document(Firebase.auth.currentUser!!.uid).set(user)
                             .addOnSuccessListener {
-                                Toast.makeText(
-                                    this@signUpActivity,
-                                    "SignUp successful :)",
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                startActivity(Intent(this@signUpActivity, HomeActivity::class.java))
+                                finish()
                             }
 
 
@@ -87,6 +87,11 @@ class signUpActivity : AppCompatActivity() {
 
         binding.addImage.setOnClickListener {
             launcher.launch("image/*")
+        }
+
+        binding.login.setOnClickListener {
+            startActivity(Intent(this@signUpActivity, LoginActivity::class.java))
+            finish()
         }
     }
 }
