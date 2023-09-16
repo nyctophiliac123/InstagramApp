@@ -14,7 +14,9 @@ import com.example.instagramapp.utils.uploadImage
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
+import com.squareup.picasso.Picasso
 
 class signUpActivity : AppCompatActivity() {
     val binding by lazy {
@@ -25,9 +27,7 @@ class signUpActivity : AppCompatActivity() {
     private val launcher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let {
             uploadImage(uri, USER_PROFILE_FOLDER) {
-                if (it == null) {
-
-                } else {
+                if (it != null) {
                     user.image = it
                     binding.profileImage.setImageURI(uri)
                 }
@@ -42,7 +42,39 @@ class signUpActivity : AppCompatActivity() {
         binding.login.setText(Html.fromHtml(text))
         user = User()
 
+        if(intent.hasExtra("MODE")) {
+            if(intent.getIntExtra("MODE", -1 )== 1) {
+
+                binding.signUpBtn.text = "Update Profile"
+                Firebase.firestore.collection(USER_NODE).document(Firebase.auth.currentUser!!.uid).get()
+                    .addOnSuccessListener {
+
+                        user=it.toObject<User>()!!
+                        if(!user.image.isNullOrEmpty()) {
+                            Picasso.get().load(user.image).into(binding.profileImage)
+                        }
+
+                        binding.name.editText?.setText(user.name)
+                        binding.email.editText?.setText(user.email)
+                        binding.password.editText?.setText(user.password)
+
+                    }
+
+            }
+        }
+
         binding.signUpBtn.setOnClickListener {
+            if (intent.hasExtra("MODE")) {
+                if (intent.getIntExtra("MODE", -1) == 1) {
+                    Firebase.firestore.collection(USER_NODE)
+                        .document(Firebase.auth.currentUser!!.uid).set(user)
+                        .addOnSuccessListener {
+                            startActivity(Intent(this@signUpActivity, HomeActivity::class.java))
+                            finish()
+                        }
+                }
+            } else {
+
             if (binding.name.editText?.text.toString().equals("") or
                 binding.email.editText?.text.toString().equals("") or
                 binding.password.editText?.text.toString().equals("")
@@ -81,7 +113,7 @@ class signUpActivity : AppCompatActivity() {
                     }
                 }
             }
-
+        }
 
         }
 

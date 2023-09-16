@@ -60,4 +60,7 @@ dependencies {
     implementation ("de.hdodenhof:circleimageview:3.1.0")
     // Import the BoM for the Firebase platform
     implementation(platform("com.google.firebase:firebase-bom:32.2.3"))
+
+    implementation ("com.squareup.picasso:picasso:2.8")
+    implementation ("com.makeramen:roundedimageview:2.3.0")
 }
