@@ -7,12 +7,15 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.example.instagramapp.HomeActivity
 import com.example.instagramapp.Models.Reel
+import com.example.instagramapp.Models.User
 import com.example.instagramapp.databinding.ActivityReelsBinding
 import com.example.instagramapp.utils.REEL
 import com.example.instagramapp.utils.REEL_FOLDER
+import com.example.instagramapp.utils.USER_NODE
 import com.example.instagramapp.utils.uploadVideo
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
 
 class ReelsActivity : AppCompatActivity() {
@@ -51,17 +54,24 @@ class ReelsActivity : AppCompatActivity() {
         }
 
         binding.postButton.setOnClickListener {
-            val reel: Reel = Reel(videoUrl!!, binding.caption.editableText.toString())
+            Firebase.firestore.collection(USER_NODE).document(Firebase.auth.currentUser!!.uid).get().addOnSuccessListener {
 
-            Firebase.firestore.collection(REEL).document().set(reel).addOnSuccessListener {
-                Firebase.firestore.collection(Firebase.auth.currentUser!!.uid + REEL).document()
-                    .set(reel)
-                    .addOnSuccessListener {
-                        startActivity(Intent(this@ReelsActivity, HomeActivity::class.java))
-                        finish()
-                    }
+                var user:User=it.toObject<User>()!!
+
+                val reel: Reel = Reel(videoUrl!!, binding.caption.editableText.toString(),user.image!!)
+
+                Firebase.firestore.collection(REEL).document().set(reel).addOnSuccessListener {
+                    Firebase.firestore.collection(Firebase.auth.currentUser!!.uid + REEL).document()
+                        .set(reel)
+                        .addOnSuccessListener {
+                            startActivity(Intent(this@ReelsActivity, HomeActivity::class.java))
+                            finish()
+                        }
+
+                }
 
             }
+
         }
 
 
