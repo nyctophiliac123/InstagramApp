@@ -3,17 +3,19 @@ package com.example.instagramapp.Post
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.SystemClock
 import androidx.activity.result.contract.ActivityResultContracts
 import com.example.instagramapp.HomeActivity
 import com.example.instagramapp.Models.Post
-import com.example.instagramapp.R
+import com.example.instagramapp.Models.User
 import com.example.instagramapp.databinding.ActivityPostBinding
 import com.example.instagramapp.utils.POST
 import com.example.instagramapp.utils.POST_FOLDER
-import com.example.instagramapp.utils.USER_PROFILE_FOLDER
+import com.example.instagramapp.utils.USER_NODE
 import com.example.instagramapp.utils.uploadImage
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
 
 class PostActivity : AppCompatActivity() {
@@ -41,7 +43,7 @@ class PostActivity : AppCompatActivity() {
         getSupportActionBar()?.setDisplayHomeAsUpEnabled(true)
         getSupportActionBar()?.setDisplayShowHomeEnabled(true)
         binding.materialToolbar.setNavigationOnClickListener {
-            startActivity(Intent(this@PostActivity,HomeActivity::class.java))
+            startActivity(Intent(this@PostActivity, HomeActivity::class.java))
             finish()
         }
 
@@ -50,21 +52,34 @@ class PostActivity : AppCompatActivity() {
         }
 
         binding.cancelButton.setOnClickListener {
-            startActivity(Intent(this@PostActivity,HomeActivity::class.java))
+            startActivity(Intent(this@PostActivity, HomeActivity::class.java))
             finish()
         }
 
         binding.postButton.setOnClickListener {
-            val post: Post = Post(imageUrl!!, binding.caption.editableText.toString())
 
-            Firebase.firestore.collection(POST).document().set(post).addOnSuccessListener {
-                Firebase.firestore.collection(Firebase.auth.currentUser!!.uid).document().set(post)
-                    .addOnSuccessListener {
-                        startActivity(Intent(this@PostActivity,HomeActivity::class.java))
-                        finish()
+            Firebase.firestore.collection(USER_NODE).document(Firebase.auth.currentUser!!.uid).get()
+                .addOnSuccessListener {
+
+                    var user = it.toObject<User>()!!
+                    val post: Post = Post(
+                        imageUrl!!,
+                        caption = binding.caption.editableText.toString(),
+                        uid = Firebase.auth.currentUser!!.uid,
+                        time=System.currentTimeMillis().toString())
+
+                    Firebase.firestore.collection(POST).document().set(post).addOnSuccessListener {
+                        Firebase.firestore.collection(Firebase.auth.currentUser!!.uid).document().set(post)
+                            .addOnSuccessListener {
+                                startActivity(Intent(this@PostActivity, HomeActivity::class.java))
+                                finish()
+                            }
+
                     }
 
-            }
+                }
+
+
         }
 
     }
