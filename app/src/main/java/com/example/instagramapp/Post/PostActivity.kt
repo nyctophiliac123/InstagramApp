@@ -1,8 +1,10 @@
 package com.example.instagramapp.Post
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
+import com.example.instagramapp.HomeActivity
 import com.example.instagramapp.Models.Post
 import com.example.instagramapp.R
 import com.example.instagramapp.databinding.ActivityPostBinding
@@ -10,6 +12,7 @@ import com.example.instagramapp.utils.POST
 import com.example.instagramapp.utils.POST_FOLDER
 import com.example.instagramapp.utils.USER_PROFILE_FOLDER
 import com.example.instagramapp.utils.uploadImage
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
@@ -18,14 +21,13 @@ class PostActivity : AppCompatActivity() {
         ActivityPostBinding.inflate(layoutInflater)
     }
 
-    var imageUrl: String?:null
+    var imageUrl: String? = null
     private val launcher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let {
-            uploadImage(uri, POST_FOLDER) {
-                url->
+            uploadImage(uri, POST_FOLDER) { url ->
                 if (url != null) {
                     binding.selectImage.setImageURI(uri)
-                    imageUrl=url
+                    imageUrl = url
                 }
             }
         }
@@ -39,6 +41,7 @@ class PostActivity : AppCompatActivity() {
         getSupportActionBar()?.setDisplayHomeAsUpEnabled(true)
         getSupportActionBar()?.setDisplayShowHomeEnabled(true)
         binding.materialToolbar.setNavigationOnClickListener {
+            startActivity(Intent(this@PostActivity,HomeActivity::class.java))
             finish()
         }
 
@@ -46,11 +49,21 @@ class PostActivity : AppCompatActivity() {
             launcher.launch("image/*")
         }
 
+        binding.cancelButton.setOnClickListener {
+            startActivity(Intent(this@PostActivity,HomeActivity::class.java))
+            finish()
+        }
+
         binding.postButton.setOnClickListener {
-            val post:Post = Post(imageUrl!!,binding.caption.editText?.text.toString())
+            val post: Post = Post(imageUrl!!, binding.caption.editableText.toString())
 
             Firebase.firestore.collection(POST).document().set(post).addOnSuccessListener {
-                finish()
+                Firebase.firestore.collection(Firebase.auth.currentUser!!.uid).document().set(post)
+                    .addOnSuccessListener {
+                        startActivity(Intent(this@PostActivity,HomeActivity::class.java))
+                        finish()
+                    }
+
             }
         }
 
