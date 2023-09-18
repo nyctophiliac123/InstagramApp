@@ -6,7 +6,7 @@
     android:orientation="vertical">
 
     <de.hdodenhof.circleimageview.CircleImageView
-        android:id="@+id/imageView4"
+        android:id="@+id/profile_image"
         android:layout_width="56dp"
         android:layout_height="56dp"
         android:src="@drawable/user" />
